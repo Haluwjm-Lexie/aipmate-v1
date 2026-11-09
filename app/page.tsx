@@ -19,7 +19,6 @@ type Project = {
   stage: string;
   scope: string;
   constraints: string;
-  unknowns: string;
   knowledge?: { id: string; title: string; text: string }[];
 };
 type Doc = {
@@ -91,7 +90,6 @@ const blank: Omit<Project, "id" | "knowledge"> = {
   stage: "需求分析",
   scope: "",
   constraints: "",
-  unknowns: "",
 };
 const newDraft = (taskType = "auto"): Draft => ({
   task: "",
@@ -108,7 +106,6 @@ const labels: Record<string, string> = {
   stage: "当前阶段",
   scope: "已确认范围",
   constraints: "关键约束",
-  unknowns: "待确认事项",
 };
 const evidenceLabels: Record<string, string> = {
   facts: "用户提供的事实",
@@ -313,7 +310,6 @@ async function browserApi(path: string, method: string, body?: any): Promise<any
       stage: "需求分析",
       scope: "商品咨询、订单只读查询、人工接管",
       constraints: "不执行退款；订单权限必须校验；不得虚构业务数据",
-      unknowns: "现有知识库和订单接口能力待确认",
       knowledge: [],
     };
     db.projects.unshift(p); db.documents[p.id] = []; db.runs[p.id] = []; commit(); return copy(p);
@@ -702,7 +698,6 @@ export default function Workspace() {
             stage: project.stage,
             scope: project.scope,
             constraints: project.constraints,
-            unknowns: project.unknowns,
           }
         : { ...blank },
     );
@@ -1157,12 +1152,6 @@ export default function Workspace() {
                     <p>{project.constraints || "尚未填写"}</p>
                   </div>
                 </div>
-                {project.unknowns && (
-                  <details className="unknowns">
-                    <summary>开放问题（可选）</summary>
-                    <p>{project.unknowns}</p>
-                  </details>
-                )}
               </details>
               <section
                 className="panel task-panel"

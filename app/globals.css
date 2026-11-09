@@ -2058,6 +2058,73 @@ html {
     scroll-behavior: auto;
   }
 }
+
+/* V3.1 final polish: compact wordmark, no legacy open-question panel,
+   and a quiet but always usable page scrollbar. */
+.sidebar {
+  width: 220px;
+  padding: 18px 12px 16px;
+}
+.main-shell {
+  margin-left: 220px;
+}
+.brand {
+  padding: 3px 8px 16px;
+}
+.brand .wordmark {
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: 1.15px;
+  line-height: 1;
+}
+.brand .wordmark span {
+  display: inline;
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: #137a7e;
+}
+.brand .wordmark i {
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  background: #137a7e;
+}
+
+/* Keep the native browser rail visible: it is intentionally neutral, not a
+   decorative black bar, and can be dragged from top to bottom. */
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #aeb6ba #f1f3f4;
+}
+*::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: #f1f3f4;
+}
+*::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  background: #aeb6ba;
+  border: 2px solid #f1f3f4;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #858f94;
+}
+@media (max-width: 900px) {
+  .sidebar { width: 210px; }
+  .main-shell { margin-left: 210px; }
+}
+@media (max-width: 760px) {
+  .sidebar { width: 260px; }
+  .main-shell { margin-left: 0; }
+}
 /* V2.2 task guidance is optional, with a single disappearing textarea hint. */
 .stage-guide,
 .slot-template {
