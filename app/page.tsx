@@ -354,7 +354,15 @@ async function browserApi(path: string, method: string, body?: any): Promise<any
   if (parts[2] === "jobs" && method === "POST") {
     const history = docs(projectId).filter((d) => (body.historyIds || []).includes(d.id)).map((d) => ({ id: d.id, title: d.title, body: d.body }));
     const result = await serverApi("client-generate", "POST", { ...body, project: copy(project), history });
-    const run: Run = { id: result.runId || uid(), task: body.task, sources: body.sources || "", taskType: body.taskType, status: result.status, documentId: result.document?.id, createdAt: new Date().toISOString() };
+    const run: Run = {
+      id: result.runId || uid(), task: body.task, sources: body.sources || "",
+      taskType: result.taskType || body.taskType, status: result.status,
+      documentId: result.document?.id, createdAt: new Date().toISOString(),
+      questions: Array.isArray(result.questions) ? result.questions : [],
+      clarification: body.clarification || "",
+      historyIds: Array.isArray(body.historyIds) ? body.historyIds : [],
+      error: result.message,
+    };
     if (result.document) { const doc = { ...result.document, version: Math.max(0, ...docs(projectId).map((d) => d.version || 0)) + 1 }; db.documents[projectId] = [doc, ...docs(projectId)]; run.documentId = doc.id; }
     db.runs[projectId] = [run, ...runs(projectId)]; commit(); return { ...result, runId: run.id };
   }
@@ -530,6 +538,7 @@ export default function Workspace() {
     [mobile, setMobile] = useState(false),
     [editing, setEditing] = useState(false),
     [editBody, setEditBody] = useState(""),
+    [followUp, setFollowUp] = useState(""),
     [settings, setSettings] = useState({
       hasKey: false,
       hasModel: false,
@@ -712,10 +721,10 @@ export default function Workspace() {
       setToast("项目已保存");
     });
   }
-  async function generate() {
+  async function generate(inputDraft: Draft = draft) {
     const id = current;
     if (generating.current.has(id) || busyProjects[id] || editing) return;
-    if (!draft.task.trim()) {
+    if (!inputDraft.task.trim()) {
       setError("请先描述当前业务任务");
       return;
     }
@@ -727,11 +736,11 @@ export default function Workspace() {
     setEditing(false);
     try {
       const r = await api(`projects/${id}/jobs`, "POST", {
-        ...draft,
-        previousQuestions: draft.questions,
+        ...inputDraft,
+        previousQuestions: inputDraft.questions,
       });
       setBusyProjects((old) => ({ ...old, [id]: r.runId }));
-      setToast("已在后台开始，可以切到其他项目继续工作");
+      setToast(r.status === "needs_input" ? "有几项关键问题需要你补充" : "分析已完成并保存到当前项目");
       await loadRecords(id, "");
     } catch (e) {
       setBusyProjects((old) => {
@@ -868,7 +877,7 @@ export default function Workspace() {
       <aside className={"sidebar " + (mobile ? "open" : "")}>
         <div className="brand" aria-label="AI 产品经理助理工作台">
           <strong className="wordmark">
-            PM<span>ATE</span>
+            AI<span>PM</span>ATE
             <i />
           </strong>
         </div>
@@ -1149,10 +1158,10 @@ export default function Workspace() {
                   </div>
                 </div>
                 {project.unknowns && (
-                  <div className="unknowns">
-                    <span>待确认</span>
-                    {project.unknowns}
-                  </div>
+                  <details className="unknowns">
+                    <summary>开放问题（可选）</summary>
+                    <p>{project.unknowns}</p>
+                  </details>
                 )}
               </details>
               <section
@@ -1323,7 +1332,7 @@ export default function Workspace() {
                         (!!draft.questions.length &&
                           !draft.clarification.trim())
                       }
-                      onClick={generate}
+                      onClick={() => void generate()}
                     >
                       {busy === current ? (
                         <>
@@ -1633,6 +1642,42 @@ export default function Workspace() {
                         </button>
                       </div>
                     </div>
+                    <section className="followup-card" aria-label="围绕报告继续讨论">
+                      <div>
+                        <span className="eyebrow">CONTINUE THE WORK</span>
+                        <h3>围绕这份报告继续讨论</h3>
+                        <p>补充事实、提出异议或指定想深入的部分。助理会带入当前报告，生成一个新的可保存版本。</p>
+                      </div>
+                      <textarea
+                        value={followUp}
+                        maxLength={6000}
+                        disabled={!!busy}
+                        onChange={(e) => setFollowUp(e.target.value)}
+                        placeholder="例如：我们暂不支持上传简历，请把第一版范围收窄，并把“人工审核”流程写得更具体。"
+                      />
+                      <div className="followup-actions">
+                        <small>这会再次调用模型；原报告会保留。</small>
+                        <button
+                          className="primary"
+                          disabled={!!busy || !followUp.trim()}
+                          onClick={() => {
+                            const next: Draft = {
+                              task: doc.task,
+                              taskType: doc.taskType || "requirement_analysis",
+                              sources: doc.sources || "",
+                              historyIds: [doc.id, ...(doc.historyIds || [])].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3),
+                              questions: [],
+                              clarification: [doc.clarification, "用户围绕上一版报告的补充与反馈：\n" + followUp.trim()].filter(Boolean).join("\n\n"),
+                            };
+                            patchDraft(next);
+                            setFollowUp("");
+                            void generate(next);
+                          }}
+                        >
+                          继续分析 <Icon name="arrow" />
+                        </button>
+                      </div>
+                    </section>
                     <details className="trace-summary">
                       <summary>运行记录与提示词版本</summary>
                       <p>
@@ -2175,34 +2220,29 @@ export default function Workspace() {
       )}
       {modal === "changelog" && (
         <Modal title="更新日志" close={closeModal}>
-          <div className="help-content">
-            <h3>V2.2 · 2026年11月5日</h3>
-            <p>
-              删除重复输入标题与序号；新增填空模板、需求→方案→PRD文档衔接、项目后台运行；改善资料导入和删除；格式不完整先自动整理一次，失败保留草稿。
-            </p>
-            <h3>V2.1 · 2026年11月5日</h3>
-            <p>
-              PMATE品牌、本地免密码、五任务独立输入和结果、项目资料库、任务记录删除、阶段下拉选择。
-            </p>
-            <h3>V2.0 · 2026年11月5日</h3>
-            <p>
-              迁移老师八节点专业提示词，接入四类交付物、独立风险审核和来源检查。
-            </p>
-            <h3>V1.1 / V1.0</h3>
-            <p>
-              项目管理、需求分析、DeepSeek连接、历史版本与备份；之后调整初版界面。
-            </p>
+          <div className="changelog">
+            <p className="changelog-intro">AI PMATE 的每一次能力与体验更新，都记录在这里。</p>
+            <section className="change-entry latest">
+              <div className="change-date"><b>V3.0</b><span>2026 年 11 月 10 日</span></div>
+              <div className="change-body"><span className="change-tag">优化</span><h3>从一次生成，变成可继续讨论的产品工作流</h3><p>重建专业提示词与完整性判断：关键资料缺失时先追问，信息足够时再输出深度文档；每份报告都可以带着补充意见继续分析并保存为新版本。项目、资料与报告继续保存在访客自己的浏览器。</p></div>
+            </section>
+            <section className="change-entry">
+              <div className="change-date"><b>V2.2</b><span>2026 年 11 月 5 日</span></div>
+              <div className="change-body"><span className="change-tag">更新</span><h3>让需求、方案与 PRD 自然衔接</h3><p>新增任务填空模板、上一阶段文档引用与版本保存；补足资料管理、删除和导出体验。</p></div>
+            </section>
+            <section className="change-entry">
+              <div className="change-date"><b>V2.1</b><span>2026 年 11 月 5 日</span></div>
+              <div className="change-body"><span className="change-tag neutral">更新</span><h3>建立无需登录的个人产品工作台</h3><p>加入多项目、资料库、任务记录、阶段管理和浏览器本地保存，方便随时回到上一次工作。</p></div>
+            </section>
           </div>
         </Modal>
       )}
       {modal === "help" && (
         <Modal title="帮助与数据备份" close={closeModal}>
           <div className="help-content">
-            <h3>PMATE 是什么意思？</h3>
+            <h3>AI PMATE 是什么意思？</h3>
             <p>
-              PM 是 Product Manager（产品经理），mate
-              是伙伴。两部分共享字母M：PM + MATE →
-              PMATE，意思是产品经理的工作伙伴，ATE不是单独的缩写。
+              AI PMATE 是 AI Product Manager Teammate 的缩写：一个帮助产品经理把模糊想法推进为可讨论、可执行文档的工作伙伴。
             </p>
             <h3>保存在哪里？</h3>
             <p>
