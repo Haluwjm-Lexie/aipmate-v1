@@ -303,6 +303,21 @@ async function browserApi(path: string, method: string, body?: any): Promise<any
     if (!p.name?.trim()) throw Error("请填写项目名称");
     db.projects.unshift(p); db.documents[p.id] = []; db.runs[p.id] = []; commit(); return copy(p);
   }
+  if (path === "demo" && method === "POST") {
+    const p = {
+      ...blank,
+      id: uid(),
+      name: "零售 AI 客服 MVP",
+      business: "面向零售电商的商品咨询与订单查询服务",
+      users: "消费者、客服人员、运营人员",
+      stage: "需求分析",
+      scope: "商品咨询、订单只读查询、人工接管",
+      constraints: "不执行退款；订单权限必须校验；不得虚构业务数据",
+      unknowns: "现有知识库和订单接口能力待确认",
+      knowledge: [],
+    };
+    db.projects.unshift(p); db.documents[p.id] = []; db.runs[p.id] = []; commit(); return copy(p);
+  }
   if (path === "activity") return db.projects.map((p) => ({ projectId: p.id, run: copy(runs(p.id)[0] || null) }));
   if (path === "backup") return { format: "aipm-v1", exportedAt: new Date().toISOString(), projects: db.projects.map((p) => ({ ...p, documents: docs(p.id) })) };
   if (path === "restore" && method === "POST") {
