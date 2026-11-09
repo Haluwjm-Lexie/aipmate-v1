@@ -1542,10 +1542,28 @@ svg {
   --paper: #fbfcfa;
 }
 body { letter-spacing: -0.08px; }
-.sidebar { width: 220px; padding: 20px 12px 14px; background: #fff; }
+.sidebar { width: 220px; padding: 18px 12px 14px; background: #fff; }
 .main-shell { margin-left: 220px; }
-.brand { padding: 6px 8px 22px; }
-.brand .wordmark { font-size: 28px; letter-spacing: 2px; }
+.brand { padding: 4px 8px 14px; }
+.brand .wordmark {
+  display: flex;
+  align-items: baseline;
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  font-size: 31px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 2.2px;
+  color: #202c31;
+}
+/* Override the ordinary sidebar subtitle rule: PM is a full-size brand letter,
+   not a small subtitle. */
+.brand .wordmark span {
+  display: inline;
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: #137a7e;
+}
 .wordmark i { width: 7px; height: 7px; margin-left: 5px; }
 .new-project { padding: 11px 13px; border-radius: 9px; font-size: 14px; box-shadow: 0 6px 18px #0e595d12; transition: transform .18s ease, box-shadow .18s ease; }
 .new-project:hover { transform: translateY(-1px); box-shadow: 0 9px 21px #0e595d1c; }
