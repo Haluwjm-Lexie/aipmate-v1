@@ -106,8 +106,8 @@ test("auto recognition, insufficiency, high risk and unknown route independently
   let r = await runWorkflow({ ...base, taskType: "prd_draft" }, undefined, {
     invoke: f.invoke,
   });
-  assert.equal(r.status, "completed");
-  assert.deepEqual(f.nodes, [1, 5, 8]);
+  assert.equal(r.status, "needs_input");
+  assert.deepEqual(f.nodes, [1]);
   f = fixture(
     route("requirement_analysis", { risk_level: "high", sufficient: false }),
     "requirement_analysis",
@@ -122,11 +122,11 @@ test("auto recognition, insufficiency, high risk and unknown route independently
         invoke: f.invoke,
       })
     ).status,
-    "completed",
+    "guidance",
   );
-  assert.deepEqual(f.nodes, [1, 3, 8]);
+  assert.deepEqual(f.nodes, [1, 7]);
 });
-test("empty and upstream failures stop; citation issues become visible warnings", async () => {
+test("empty, failed, forged citations and bad structure never become deliverables", async () => {
   await assert.rejects(
     runWorkflow(base, undefined, {
       invoke: async () => {
@@ -148,9 +148,7 @@ test("empty and upstream failures stop; citation issues become visible warnings"
       r.result.evidence.citations = [{ sourceId: "fake", quote: "虚构来源" }];
     return r;
   };
-  const warned = await runWorkflow(base, undefined, { invoke });
-  assert.equal(warned.status, "completed");
-  assert.ok(warned.warnings.some((x) => /引用不在/.test(x)));
+  await assert.rejects(runWorkflow(base, undefined, { invoke }), /引用不在/);
 });
 test("prompt migration preserves all four original professional System bodies exactly", () => {
   for (const n of [3, 4, 5, 6]) {
@@ -170,7 +168,7 @@ test("explicitly prohibiting unsafe actions does not force high-risk response", 
   );
   assert.equal(r.status, "completed");
 });
-test("invented source names are preserved as a warning instead of discarding the report", async () => {
+test("invented source names without structured citations fail closed", async () => {
   const f = fixture(route(), "requirement_analysis");
   const invoke = async (...a) => {
     const r = await f.invoke(...a);
@@ -180,9 +178,7 @@ test("invented source names are preserved as a warning instead of discarding the
     }
     return r;
   };
-  const warned = await runWorkflow(base, undefined, { invoke });
-  assert.equal(warned.status, "completed");
-  assert.ok(warned.warnings.some((x) => /来源/.test(x)));
+  await assert.rejects(runWorkflow(base, undefined, { invoke }), /来源/);
 });
 test("cancelled request cannot call the next professional node", async () => {
   const c = new AbortController();
@@ -276,17 +272,27 @@ test("an incomplete professional draft reaches final review for repair instead o
   assert.deepEqual(f.nodes, [1, 4, 8]);
   assert.match(r.body, /方案结论/);
 });
-test("final review format gaps no longer trigger a second expensive model call", async () => {
-  const f = fixture(route(), "requirement_analysis");
-  const invoke = async (...a) => {
-    const out = await f.invoke(...a);
-    if (f.nodes.at(-1) === 8)
-      out.result.body =
-        "## 未整理的报告\n" + "需要按专业标题整理，事实保持不变。".repeat(10);
-    return out;
-  };
-  const result = await runWorkflow(base, undefined, { invoke });
-  assert.equal(result.status, "completed");
-  assert.ok(result.warnings.some((x) => /建议补充/.test(x)));
-  assert.deepEqual(f.nodes, [1, 3, 8]);
+test("final review format repair is bounded to one extra review and still fails closed", async () => {
+  for (const recover of [true, false]) {
+    const f = fixture(route(), "requirement_analysis");
+    let reviews = 0;
+    const invoke = async (...a) => {
+      const out = await f.invoke(...a);
+      if (f.nodes.at(-1) === 8 && (!recover || ++reviews === 1))
+        out.result.body =
+          "## 未整理的报告\n" + "需要按专业标题整理，事实保持不变。".repeat(10);
+      return out;
+    };
+    if (recover)
+      assert.equal(
+        (await runWorkflow(base, undefined, { invoke })).status,
+        "completed",
+      );
+    else
+      await assert.rejects(
+        runWorkflow(base, undefined, { invoke }),
+        /自动整理后仍未通过/,
+      );
+    assert.deepEqual(f.nodes, [1, 3, 8, 8]);
+  }
 });

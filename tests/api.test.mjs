@@ -94,14 +94,14 @@ test("upgraded API preserves projects and versions; rejects failures without dem
     const ask = await req(`projects/${p.id}/generate`, "POST", {
       task: "分析业务",
     });
-    assert.equal(ask.data.status, "completed");
+    assert.equal(ask.data.status, "needs_input");
     mode = "risk";
     assert.equal(
       (await req(`projects/${p.id}/generate`, "POST", { task: "业务请求" }))
         .data.status,
       "high_risk",
     );
-    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 1);
+    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 0);
     mode = "completed";
     const done = await req(`projects/${p.id}/generate`, "POST", {
       task: "分析订单查询",
@@ -124,7 +124,7 @@ test("upgraded API preserves projects and versions; rejects failures without dem
           body: "# 人工编辑正文",
         })
       ).data.version,
-      3,
+      2,
     );
     mode = "failure";
     assert.equal(
@@ -138,10 +138,10 @@ test("upgraded API preserves projects and versions; rejects failures without dem
         .status,
       502,
     );
-    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 3);
+    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 2);
     mode = "completed";
     await req(`projects/${p.id}/generate`, "POST", { task: "再次生成" });
-    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 4);
+    assert.equal((await req(`projects/${p.id}/documents`)).data.length, 3);
     const backup = (await req("backup")).data;
     assert.ok(!JSON.stringify(backup).includes("test-only-key"));
     assert.equal((await req("restore", "POST", backup)).status, 200);

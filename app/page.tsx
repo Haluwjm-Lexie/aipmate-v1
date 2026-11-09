@@ -250,7 +250,7 @@ function Icon({ name }: { name: string }) {
     </svg>
   );
 }
-async function api(path: string, method = "GET", body?: unknown) {
+async function serverApi(path: string, method = "GET", body?: unknown) {
   let response;
   try {
     response = await fetch("/api/" + path, {
@@ -270,6 +270,84 @@ async function api(path: string, method = "GET", body?: unknown) {
   }
   if (!response.ok) throw Error(data.error || "操作失败");
   return data;
+}
+// Vercel Functions do not provide a durable disk.  The public demo therefore
+// keeps each visitor's workspace in their own browser; only model generation
+// is sent to the server (where the API key remains private).
+const workspaceKey = "aipmate-browser-workspace-v1";
+type BrowserWorkspace = { projects: Project[]; documents: Record<string, Doc[]>; runs: Record<string, Run[]> };
+function browserWorkspace(): BrowserWorkspace {
+  if (typeof window === "undefined") return { projects: [], documents: {}, runs: {} };
+  try {
+    const data = JSON.parse(localStorage.getItem(workspaceKey) || "");
+    if (Array.isArray(data?.projects) && data.documents && data.runs) return data;
+  } catch {}
+  return { projects: [], documents: {}, runs: {} };
+}
+function saveBrowserWorkspace(data: BrowserWorkspace) {
+  localStorage.setItem(workspaceKey, JSON.stringify(data));
+}
+const uid = () => crypto.randomUUID();
+const copy = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
+async function browserApi(path: string, method: string, body?: any): Promise<any> {
+  const db = browserWorkspace();
+  const parts = path.split("/");
+  const projectId = parts[1];
+  const project = db.projects.find((p) => p.id === projectId);
+  const docs = (id: string) => db.documents[id] || [];
+  const runs = (id: string) => db.runs[id] || [];
+  const commit = () => saveBrowserWorkspace(db);
+  if (path === "projects" && method === "GET") return copy(db.projects);
+  if (path === "projects" && method === "POST") {
+    const p = { ...blank, ...body, id: uid(), createdAt: new Date().toISOString(), knowledge: [] };
+    if (!p.name?.trim()) throw Error("请填写项目名称");
+    db.projects.unshift(p); db.documents[p.id] = []; db.runs[p.id] = []; commit(); return copy(p);
+  }
+  if (path === "activity") return db.projects.map((p) => ({ projectId: p.id, run: copy(runs(p.id)[0] || null) }));
+  if (path === "backup") return { format: "aipm-v1", exportedAt: new Date().toISOString(), projects: db.projects.map((p) => ({ ...p, documents: docs(p.id) })) };
+  if (path === "restore" && method === "POST") {
+    if (body?.format !== "aipm-v1" || !Array.isArray(body.projects)) throw Error("不是有效的工作台备份");
+    let count = 0;
+    for (const old of body.projects.slice(0, 100)) {
+      const id = uid(); const p = { ...old, id, name: `${old.name || "未命名项目"}（导入）`, knowledge: old.knowledge || [] };
+      db.projects.unshift(p); db.documents[id] = (old.documents || []).map((d: Doc) => ({ ...d, id: uid(), projectId: id, imported: true })); db.runs[id] = []; count++;
+    }
+    commit(); return { count };
+  }
+  if (!project) throw Error("项目不存在");
+  if (parts.length === 2) {
+    if (method === "PUT") { Object.assign(project, body, { updatedAt: new Date().toISOString() }); commit(); return copy(project); }
+    if (method === "DELETE") { db.projects = db.projects.filter((p) => p.id !== projectId); delete db.documents[projectId]; delete db.runs[projectId]; commit(); return { ok: true }; }
+  }
+  if (parts[2] === "documents") {
+    if (parts.length === 3 && method === "GET") return copy(docs(projectId));
+    const old = docs(projectId).find((d) => d.id === parts[3]);
+    if (!old) throw Error("文档不存在");
+    if (method === "DELETE") { db.documents[projectId] = docs(projectId).filter((d) => d.id !== old.id); commit(); return { ok: true }; }
+    if (method === "PUT") { const next = { ...old, ...body, id: uid(), parentId: old.id, version: Math.max(0, ...docs(projectId).map((d) => d.version || 0)) + 1, createdAt: new Date().toISOString(), edited: true }; db.documents[projectId].unshift(next); commit(); return copy(next); }
+  }
+  if (parts[2] === "runs") {
+    if (method === "GET") return copy(runs(projectId));
+    if (method === "DELETE") { db.runs[projectId] = runs(projectId).filter((r) => r.id !== parts[3]); commit(); return { ok: true }; }
+  }
+  if (parts[2] === "knowledge") {
+    if (method === "GET") return copy(project.knowledge || []);
+    if (method === "POST") { const item = { id: uid(), title: body.title, text: body.text, createdAt: new Date().toISOString() }; project.knowledge = [...(project.knowledge || []), item]; commit(); return copy(item); }
+    if (method === "DELETE") { project.knowledge = (project.knowledge || []).filter((x) => x.id !== parts[3]); commit(); return { ok: true, knowledge: copy(project.knowledge) }; }
+  }
+  if (parts[2] === "cancel") return { ok: true };
+  if (parts[2] === "jobs" && method === "POST") {
+    const history = docs(projectId).filter((d) => (body.historyIds || []).includes(d.id)).map((d) => ({ id: d.id, title: d.title, body: d.body }));
+    const result = await serverApi("client-generate", "POST", { ...body, project: copy(project), history });
+    const run: Run = { id: result.runId || uid(), task: body.task, sources: body.sources || "", taskType: body.taskType, status: result.status, documentId: result.document?.id, createdAt: new Date().toISOString() };
+    if (result.document) { const doc = { ...result.document, version: Math.max(0, ...docs(projectId).map((d) => d.version || 0)) + 1 }; db.documents[projectId] = [doc, ...docs(projectId)]; run.documentId = doc.id; }
+    db.runs[projectId] = [run, ...runs(projectId)]; commit(); return { ...result, runId: run.id };
+  }
+  throw Error("不支持此操作");
+}
+async function api(path: string, method = "GET", body?: unknown) {
+  if (["session", "settings"].includes(path)) return serverApi(path, method, body);
+  return browserApi(path, method, body);
 }
 function download(
   name: string,
@@ -372,7 +450,7 @@ function TaskTemplate({
   });
   return (
     <details className="slot-template">
-      <summary>写作参考（可选）</summary>
+      <summary>不会写要求？用填空模板</summary>
       <p>
         填你知道的，不清楚可以留空。点击下面按钮，会整理成当前任务的要求；不会自动开始分析。
       </p>
@@ -619,10 +697,10 @@ export default function Workspace() {
       setToast("项目已保存");
     });
   }
-  async function generate(input = draft) {
+  async function generate() {
     const id = current;
     if (generating.current.has(id) || busyProjects[id] || editing) return;
-    if (!input.task.trim()) {
+    if (!draft.task.trim()) {
       setError("请先描述当前业务任务");
       return;
     }
@@ -634,8 +712,8 @@ export default function Workspace() {
     setEditing(false);
     try {
       const r = await api(`projects/${id}/jobs`, "POST", {
-        ...input,
-        previousQuestions: input.questions,
+        ...draft,
+        previousQuestions: draft.questions,
       });
       setBusyProjects((old) => ({ ...old, [id]: r.runId }));
       setToast("已在后台开始，可以切到其他项目继续工作");
@@ -773,9 +851,10 @@ export default function Workspace() {
         />
       )}
       <aside className={"sidebar " + (mobile ? "open" : "")}>
-        <div className="brand" aria-label="AIPMATE · AI 产品经理助理工作台">
-          <strong className="wordmark" aria-label="AIPMATE">
-            <span className="wordmark-ai">AI</span><span className="wordmark-pm">PM</span><span className="wordmark-ate">ATE</span><i />
+        <div className="brand" aria-label="AI 产品经理助理工作台">
+          <strong className="wordmark">
+            PM<span>ATE</span>
+            <i />
           </strong>
         </div>
         <button className="new-project" onClick={() => openProject()}>
@@ -902,26 +981,48 @@ export default function Workspace() {
         </div>
       </aside>
       <div className="main-shell">
+        <header className="topbar">
+          <div className="breadcrumb">
+            <button
+              className="icon-btn mobile-menu"
+              aria-label="展开项目列表"
+              onClick={() => setMobile(true)}
+            >
+              <Icon name="menu" />
+            </button>
+            <span>工作空间</span>
+            <span className="slash">/</span>
+            <strong>{project?.name || "未选择项目"}</strong>
+          </div>
+          <div className="header-actions">
+            <button
+              className={
+                "connection " +
+                (settings.hasKey && settings.hasModel ? "configured" : "")
+              }
+              onClick={() => setModal("settings")}
+            >
+              <span />
+              {connection === "已连接"
+                ? "已连接"
+                : settings.hasKey && settings.hasModel
+                  ? "已配置 · 待测试"
+                  : "未配置模型"}
+            </button>
+            <button
+              className="icon-btn"
+              aria-label="帮助中心"
+              onClick={() => setModal("help")}
+            >
+              <Icon name="book" />
+            </button>
+          </div>
+        </header>
         <main className="workspace">
           <section className="page-heading">
             <div>
-              <button className="icon-btn mobile-menu" aria-label="展开项目列表" onClick={() => setMobile(true)}>
-                <Icon name="menu" />
-              </button>
               <h1>项目工作台</h1>
               <p>选一项工作，填写要求，生成并保存文档。</p>
-            </div>
-            <div className="header-actions">
-              <button
-                className={"connection " + (settings.hasKey && settings.hasModel ? "configured" : "")}
-                onClick={() => setModal("settings")}
-              >
-                <span />
-                {connection === "已连接" ? "已连接" : settings.hasKey && settings.hasModel ? "已配置 · 待测试" : "未配置模型"}
-              </button>
-              <button className="icon-btn" aria-label="帮助中心" onClick={() => setModal("help")}>
-                <Icon name="book" />
-              </button>
             </div>
           </section>
           <nav className="task-tabs" role="tablist" aria-label="选择要做的工作">
@@ -1133,7 +1234,7 @@ export default function Workspace() {
                 </details>
                 {draft.questions.length > 0 && (
                   <div className="questions">
-                    <strong>可选补充</strong>
+                    <strong>还需要你确认</strong>
                     <ol>
                       {draft.questions.map((q) => (
                         <li key={q}>{q}</li>
@@ -1151,9 +1252,6 @@ export default function Workspace() {
                         placeholder="直接补充即可，无需重新输入整个任务"
                       />
                     </label>
-                    <button className="primary" disabled={editing || !!busy || action} onClick={() => generate()}>
-                      继续分析
-                    </button>
                   </div>
                 )}
                 {editing && (
@@ -1206,9 +1304,11 @@ export default function Workspace() {
                       disabled={
                         editing ||
                         !!busy ||
-                        action
+                        action ||
+                        (!!draft.questions.length &&
+                          !draft.clarification.trim())
                       }
-                      onClick={() => generate()}
+                      onClick={generate}
                     >
                       {busy === current ? (
                         <>
@@ -1608,22 +1708,20 @@ export default function Workspace() {
                         className="primary"
                         disabled={!!busy}
                         onClick={() => {
-                          const retry = {
+                          patchDraft({
                             task: visibleRun.task,
-                            taskType: visibleRun.taskType && tasks[visibleRun.taskType]
+                            taskType: tasks[visibleRun.taskType || ""]
                               ? visibleRun.taskType
                               : selectedType,
                             historyIds: visibleRun.historyIds || [],
                             sources: visibleRun.sources || "",
                             clarification: visibleRun.clarification || "",
                             questions: visibleRun.questions || [],
-                          };
-                          patchDraft(retry);
-                          if (visibleRun.status === "failed") void generate(retry);
-                          else document.getElementById("task")?.focus();
+                          });
+                          document.getElementById("task")?.focus();
                         }}
                       >
-                        {visibleRun.status === "failed" ? "用原任务重试" : "返回任务"}
+                        返回任务，修改后重试
                       </button>
                       <button
                         className="secondary"
@@ -1648,7 +1746,7 @@ export default function Workspace() {
             </>
           )}
           <footer className="page-footer">
-            <span>AIPMATE · AI PRODUCT MANAGER ASSISTANT</span>
+            <span>LEXIE · AI PRODUCT ASSISTANT</span>
             <span>让判断有依据，让想法可执行。</span>
           </footer>
         </main>
@@ -2062,66 +2160,38 @@ export default function Workspace() {
       )}
       {modal === "changelog" && (
         <Modal title="更新日志" close={closeModal}>
-          <div className="changelog-shell">
-            <p className="changelog-intro">新功能、体验调整与问题修复，都记录在这里。</p>
-            <div className="changelog-list">
-              <article className="release-card current">
-                <div className="release-date"><strong>2026 年 11 月 7 日</strong><span>V2.3.1</span></div>
-                <div className="release-copy">
-                  <span className="release-type optimize">修复</span>
-                  <h3>一句话即可开始分析</h3>
-                  <p>补充信息可选，失败可用原任务直接重试。修复后台模块重新加载时误把运行中的任务标记为中断的问题。</p>
-                </div>
-              </article>
-              <article className="release-card current">
-                <div className="release-date"><strong>2026 年 11 月 7 日</strong><span>V2.3</span></div>
-                <div className="release-copy">
-                  <span className="release-type optimize">优化</span>
-                  <h3>更少拦截，更顺畅地完成分析</h3>
-                  <p>报告少一个固定标题时不再整份作废，正文会正常保存，格式和来源问题改为温和提醒。模型输出过长时自动精简重试一次。</p>
-                  <p>新增 AIPMATE 品牌字标，移除顶部重复的工作空间导航，项目工作台直接顶格呈现。</p>
-                </div>
-              </article>
-              <article className="release-card">
-                <div className="release-date"><strong>2026 年 11 月 5 日</strong><span>V2.2</span></div>
-                <div className="release-copy">
-                  <span className="release-type update">更新</span>
-                  <h3>任务衔接与后台运行</h3>
-                  <p>加入需求→方案→PRD 文档衔接、项目后台运行、资料导入与删除，并精简重复输入说明。</p>
-                </div>
-              </article>
-              <article className="release-card">
-                <div className="release-date"><strong>2026 年 11 月 5 日</strong><span>V2.1</span></div>
-                <div className="release-copy">
-                  <span className="release-type update">更新</span>
-                  <h3>本地工作台基础体验</h3>
-                  <p>本地免密码、五类任务独立输入和结果、项目资料库、任务记录删除、阶段下拉选择。</p>
-                </div>
-              </article>
-              <article className="release-card">
-                <div className="release-date"><strong>2026 年 11 月 5 日</strong><span>V2.0</span></div>
-                <div className="release-copy">
-                  <span className="release-type launch">上线</span>
-                  <h3>专业提示词工作流</h3>
-                  <p>接入需求分析、AI 方案、PRD 和竞品分析四类专业交付物，增加风险与来源检查。</p>
-                </div>
-              </article>
-            </div>
+          <div className="help-content">
+            <h3>V2.2 · 2026年11月5日</h3>
+            <p>
+              删除重复输入标题与序号；新增填空模板、需求→方案→PRD文档衔接、项目后台运行；改善资料导入和删除；格式不完整先自动整理一次，失败保留草稿。
+            </p>
+            <h3>V2.1 · 2026年11月5日</h3>
+            <p>
+              PMATE品牌、本地免密码、五任务独立输入和结果、项目资料库、任务记录删除、阶段下拉选择。
+            </p>
+            <h3>V2.0 · 2026年11月5日</h3>
+            <p>
+              迁移老师八节点专业提示词，接入四类交付物、独立风险审核和来源检查。
+            </p>
+            <h3>V1.1 / V1.0</h3>
+            <p>
+              项目管理、需求分析、DeepSeek连接、历史版本与备份；之后调整初版界面。
+            </p>
           </div>
         </Modal>
       )}
       {modal === "help" && (
         <Modal title="帮助与数据备份" close={closeModal}>
           <div className="help-content">
-            <h3>AIPMATE 是什么意思？</h3>
+            <h3>PMATE 是什么意思？</h3>
             <p>
-              AI PM 是 AI Product Manager（AI 产品经理），mate 是伙伴。AIPMATE
-              就是“AI 产品经理的工作伙伴”，不是普通产品经理工具。
+              PM 是 Product Manager（产品经理），mate
+              是伙伴。两部分共享字母M：PM + MATE →
+              PMATE，意思是产品经理的工作伙伴，ATE不是单独的缩写。
             </p>
             <h3>保存在哪里？</h3>
             <p>
-              项目和历史文档保存在本机data数据库里，正常关闭后仍在。不要删除data。完整工作台需要服务端，不能直接部署到GitHub
-              Pages。输入框未提交的文字不算已保存报告。
+              在线体验版将项目、资料和历史文档保存在当前浏览器中；刷新页面后仍在。换浏览器、清除浏览器数据或使用无痕模式时不会保留，重要内容请导出备份。模型生成在服务端完成，API Key 不会出现在浏览器中。
             </p>
             <h3>如何开始</h3>
             <p>
@@ -2144,7 +2214,7 @@ export default function Workspace() {
             <h3>备份与恢复</h3>
             <p>
               备份包含全部项目和文档版本，不包含 API
-              密钥，也不包含运行日志。恢复会创建带“导入”后缀的副本，不覆盖现有项目。在线版需持久化磁盘，否则重部署可能丢失数据。
+              密钥，也不包含运行日志。恢复会创建带“导入”后缀的副本，不覆盖现有项目。
             </p>
             <div className="backup-actions">
               <button

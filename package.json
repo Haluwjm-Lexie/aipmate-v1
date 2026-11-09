@@ -1,7 +1,7 @@
 {
   "name": "lexie-ai-pm-assistant",
-  "version": "2.3.0",
-  "description": "AIPMATE · AI 产品经理助理工作台",
+  "version": "2.2.0",
+  "description": "AI 产品经理助理 · 需求分析工作台",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "next build --webpack",

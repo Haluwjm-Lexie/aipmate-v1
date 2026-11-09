@@ -7,15 +7,6 @@ process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "aipm-"));
 const { store } = await import("../lib/store.mjs");
 const { issueSession, verifySession, validOrigin } =
   await import("../lib/security.mjs");
-test("reloading the store preserves jobs owned by the live worker", async () => {
-  const project = store.createProject({ name: "运行中任务" });
-  const run = store.createRun(project.id, {
-    status: "running",
-    workerPid: process.pid,
-  });
-  const { store: reloaded } = await import("../lib/store.mjs?reload");
-  assert.equal(reloaded.listRuns(project.id).find((item) => item.id === run.id).status, "running");
-});
 test("projects isolate documents; manual edits append versions", () => {
   const a = store.createProject({ name: "项目A" }),
     b = store.createProject({ name: "项目B" });

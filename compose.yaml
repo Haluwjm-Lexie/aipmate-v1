@@ -1,0 +1,15 @@
+services:
+  workspace:
+    build: .
+    ports:
+      - "127.0.0.1:3020:3020"
+    env_file:
+      - .env.local
+    environment:
+      DATA_DIR: /app/data
+      NODE_ENV: production
+    volumes:
+      - workspace-data:/app/data
+    restart: unless-stopped
+volumes:
+  workspace-data:
