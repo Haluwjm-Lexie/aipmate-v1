@@ -1,0 +1,36 @@
+{
+  "name": "lexie-ai-pm-assistant",
+  "version": "2.3.0",
+  "description": "AIPMATE · AI 产品经理助理工作台",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1 --port 3020",
+    "start:server": "next start --hostname 0.0.0.0 --port 3020",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "validate": "npm run test && npm run build",
+    "compare:live": "node scripts/compare-live.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "dependencies": {
+    "next": "^16.4.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=24.22.1"
+  }
+}

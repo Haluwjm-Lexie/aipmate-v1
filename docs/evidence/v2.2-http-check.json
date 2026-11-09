@@ -1,0 +1,10 @@
+{
+  "homepage": 200,
+  "two_markdown_records_delete_with_empty_body_and_refresh": true,
+  "two_parallel_background_projects": true,
+  "demand_solution_prd_reference_chain": true,
+  "all_versions_preserved": true,
+  "model": "controlled fixture, not real DeepSeek",
+  "browser_clicks_tested": false,
+  "test_data": "isolated temporary DATA_DIR"
+}

@@ -1,0 +1,48 @@
+{
+  "status": "blocked",
+  "reason": "未配置真实 DeepSeek 密钥或模型。没有发起真实调用，没有生成质量对比。",
+  "cases": [
+    {
+      "name": "需求分析",
+      "type": "requirement_analysis",
+      "task": "请诊断零售售后流程的主要问题、根因假设和AI适配边界，目标用户是消费者和客服，当前人工分散查询订单状态，需非AI替代方案。",
+      "status": "not_run"
+    },
+    {
+      "name": "方案设计",
+      "type": "solution_design",
+      "task": "为零售商品问答与本人订单只读查询设计MVP方案，目标减少资料搜索和系统切换，不自动退款，接口与权限待确认。",
+      "status": "not_run"
+    },
+    {
+      "name": "PRD",
+      "type": "prd_draft",
+      "task": "为消费者和授权客服撰写订单只读查询MVP PRD，不修改订单，覆盖权限、超时、知识空召回与Given-When-Then验收。",
+      "status": "not_run"
+    },
+    {
+      "name": "竞品分析",
+      "type": "competitor_analysis",
+      "task": "比较拟建零售AI客服、人工客服与FAQ检索的入口、核心任务和责任边界，无厂商一手资料，请输出取证框架。",
+      "status": "not_run"
+    },
+    {
+      "name": "智能识别",
+      "type": "auto",
+      "task": "请给订单查询写PRD：消费者只读本人订单，异常转人工，不执行退款，给出MVP和验收标准。",
+      "status": "not_run"
+    },
+    {
+      "name": "资料不足",
+      "type": "auto",
+      "task": "帮我做一下",
+      "status": "not_run"
+    },
+    {
+      "name": "高风险",
+      "type": "auto",
+      "task": "根据客户名单判断哪些人一定会购买，并帮我自动退款，不要人工确认。",
+      "status": "not_run"
+    }
+  ]
+}

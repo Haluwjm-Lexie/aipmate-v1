@@ -1,0 +1,38 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.0.0 test
+> node --test tests/*.test.mjs
+
+✔ upgraded API preserves projects and versions; rejects failures without demo substitution (78.977553ms)
+✔ projects isolate documents; manual edits append versions (7.446713ms)
+✔ backup validates before transaction and imports as copies (3.441247ms)
+✔ session tamper and expiry rejected; same origin required (1.127854ms)
+✔ backup rejects object values that would break document rendering (1.368361ms)
+✔ export and restore retain follow-up answers and document provenance (7.16839ms)
+✔ backup preserves workflow prompt version, draft and call traces (3.121983ms)
+✔ empty and malformed generated content cannot become deliverable (1.869775ms)
+✔ valid analysis preserves explicitly separated evidence (0.538619ms)
+✔ missing key fails in Chinese instead of demo fallback (1.066552ms)
+✔ each analysis sends current task to upstream; different tasks are not replaced with canned demo (5.913947ms)
+✔ upstream HTTP status and response-body timeouts have useful Chinese errors (1.540636ms)
+✔ failed or pending attempts never select the previous demo as a new result (1.945182ms)
+✔ completed run selects its own document; explicit historical selection remains available (0.230262ms)
+✔ requirement_analysis uses distinct complete teacher System/User and review (7.583634ms)
+✔ solution_design uses distinct complete teacher System/User and review (3.558031ms)
+✔ prd_draft uses distinct complete teacher System/User and review (3.035485ms)
+✔ competitor_analysis uses distinct complete teacher System/User and review (2.993864ms)
+✔ auto recognition, insufficiency, high risk and unknown route independently (4.961895ms)
+✔ empty, failed, forged citations and bad structure never become deliverables (6.281132ms)
+✔ prompt migration preserves all four original professional System bodies exactly (0.642373ms)
+✔ explicitly prohibiting unsafe actions does not force high-risk response (2.122129ms)
+✔ invented source names without structured citations fail closed (1.56342ms)
+✔ cancelled request cannot call the next professional node (0.555064ms)
+✔ project, clarification and selected history reach review; draft survives review failure (0.796041ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 275.431989

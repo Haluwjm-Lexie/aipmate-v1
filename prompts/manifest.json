@@ -1,0 +1,110 @@
+{
+  "version": "teacher-v2.0",
+  "authority": "docs/sources/teacher-original.md",
+  "nodes": [
+    {
+      "node": 1,
+      "name": "意图识别与完整性检查",
+      "source_lines": [
+        6,
+        125
+      ],
+      "original_system_sha256": "e9d3f425367f38f67d10f0922972595be0bc17dfb9aa03ed252dab9707b45065",
+      "runtime_system_sha256": "d2c2506f18d3e0e0935bee9c754a16e8cd1c8c6649ae22d986789770c8a6ca1f",
+      "changes": [
+        "修复 safe_response_required 拼写"
+      ]
+    },
+    {
+      "node": 2,
+      "name": "高风险回复",
+      "source_lines": [
+        125,
+        143
+      ],
+      "original_system_sha256": "cf2048295e63263a265c76e5b0e783da7d501de55fe021e08002b5b16ef1693d",
+      "runtime_system_sha256": "cf2048295e63263a265c76e5b0e783da7d501de55fe021e08002b5b16ef1693d",
+      "changes": [
+        "补充缺失的 User Prompt（B）"
+      ]
+    },
+    {
+      "node": 3,
+      "name": "需求分析",
+      "source_lines": [
+        143,
+        245
+      ],
+      "original_system_sha256": "43ae9e10afdb8c1a66e4d44503b2ec76668363afa58b037c686fae613cf85650",
+      "runtime_system_sha256": "43ae9e10afdb8c1a66e4d44503b2ec76668363afa58b037c686fae613cf85650",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    },
+    {
+      "node": 4,
+      "name": "AI方案设计",
+      "source_lines": [
+        245,
+        407
+      ],
+      "original_system_sha256": "ff5dfb3f7544aa483bb77abc0541855f977839a10510fe5c366ec98ff79ce956",
+      "runtime_system_sha256": "ff5dfb3f7544aa483bb77abc0541855f977839a10510fe5c366ec98ff79ce956",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    },
+    {
+      "node": 5,
+      "name": "PRD草稿",
+      "source_lines": [
+        407,
+        638
+      ],
+      "original_system_sha256": "b72257153e7a693574be37b6b12ae041210fb7506d935c61165bd3915ecca70f",
+      "runtime_system_sha256": "b72257153e7a693574be37b6b12ae041210fb7506d935c61165bd3915ecca70f",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    },
+    {
+      "node": 6,
+      "name": "竞品分析",
+      "source_lines": [
+        638,
+        863
+      ],
+      "original_system_sha256": "9b4bdb9a073a492a127553f624f9c80b17ae3cc47fa57d6449a8c711889dcbfa",
+      "runtime_system_sha256": "9b4bdb9a073a492a127553f624f9c80b17ae3cc47fa57d6449a8c711889dcbfa",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    },
+    {
+      "node": 7,
+      "name": "未知任务引导",
+      "source_lines": [
+        863,
+        959
+      ],
+      "original_system_sha256": "df154fa9edf471b9c8b30f70dad94176a1fa579200332320fef0d652c75b9aae",
+      "runtime_system_sha256": "df154fa9edf471b9c8b30f70dad94176a1fa579200332320fef0d652c75b9aae",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    },
+    {
+      "node": 8,
+      "name": "风险审核与最终整理",
+      "source_lines": [
+        959,
+        1065
+      ],
+      "original_system_sha256": "011a4c1d74aa8b7d57a7648dc0b9dc3d3cad4dca1d21d47e5ae4a29db80c1507",
+      "runtime_system_sha256": "011a4c1d74aa8b7d57a7648dc0b9dc3d3cad4dca1d21d47e5ae4a29db80c1507",
+      "changes": [
+        "统一 User Prompt 变量名"
+      ]
+    }
+  ]
+}

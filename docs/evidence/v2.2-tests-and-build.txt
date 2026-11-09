@@ -1,0 +1,82 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.2.0 validate
+> npm run test && npm run build
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.2.0 test
+> node --test tests/*.test.mjs
+
+✔ upgraded API preserves projects and versions; rejects failures without demo substitution (92.381657ms)
+✔ two project jobs continue after initiating request aborts; duplicate and third jobs are rejected (68.656334ms)
+✔ projects isolate documents; manual edits append versions (15.390673ms)
+✔ backup validates before transaction and imports as copies (6.396206ms)
+✔ session tamper and expiry rejected; same origin required (1.153841ms)
+✔ backup rejects object values that would break document rendering (1.438766ms)
+✔ export and restore retain follow-up answers and document provenance (7.97228ms)
+✔ backup preserves workflow prompt version, draft and call traces (4.628861ms)
+✔ empty and malformed generated content cannot become deliverable (1.305234ms)
+✔ valid analysis preserves explicitly separated evidence (0.198663ms)
+✔ missing key fails in Chinese instead of demo fallback (0.822352ms)
+✔ each analysis sends current task to upstream; different tasks are not replaced with canned demo (7.431358ms)
+✔ upstream HTTP status and response-body timeouts have useful Chinese errors (1.815116ms)
+✔ three-stage handoff references correct real upstream versions and ends at PRD (1.469708ms)
+✔ slot prompts answer the selected professional task and mark missing input as unconfirmed (0.727963ms)
+✔ password-free local API still rejects foreign origins (8.76196ms)
+✔ project knowledge is isolated, retrieved verbatim and preserved on backup/restore (14.920636ms)
+✔ deleting a task preserves documents and rejects running or cross-project tasks (10.033459ms)
+✔ DELETE accepts an empty streamed body as browsers and production Next can send (7.0805ms)
+✔ failed or pending attempts never select the previous demo as a new result (0.961758ms)
+✔ completed run selects its own document; explicit historical selection remains available (0.180946ms)
+✔ switching tasks separates draft keys and document lists, including legacy documents (1.930757ms)
+✔ reloading a project uses active task records even when another task completed more recently (0.276528ms)
+✔ requirement_analysis uses distinct complete teacher System/User and review (6.413717ms)
+✔ solution_design uses distinct complete teacher System/User and review (2.828ms)
+✔ prd_draft uses distinct complete teacher System/User and review (2.234805ms)
+✔ competitor_analysis uses distinct complete teacher System/User and review (1.717282ms)
+✔ auto recognition, insufficiency, high risk and unknown route independently (2.834119ms)
+✔ empty, failed, forged citations and bad structure never become deliverables (2.035752ms)
+✔ prompt migration preserves all four original professional System bodies exactly (0.394551ms)
+✔ explicitly prohibiting unsafe actions does not force high-risk response (1.290633ms)
+✔ invented source names without structured citations fail closed (0.891875ms)
+✔ cancelled request cannot call the next professional node (0.514879ms)
+✔ project, clarification and selected history reach review; draft survives review failure (0.960165ms)
+✔ local knowledge reaches professional and review nodes with actual excerpt IDs (1.398141ms)
+✔ an incomplete professional draft reaches final review for repair instead of demanding user business input (1.317893ms)
+✔ final review format repair is bounded to one extra review and still fails closed (3.100522ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 284.936233
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.2.0 build
+> next build --webpack
+
+▲ Next.js 16.4.4 (webpack)
+✓ Running next.config.mjs took 26ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.2s
+  Running TypeScript ...
+  Finished TypeScript in 534ms ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 436ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+└ ƒ /api/[...path]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

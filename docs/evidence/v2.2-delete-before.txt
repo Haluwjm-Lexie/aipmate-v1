@@ -1,0 +1,31 @@
+✔ password-free local API still rejects foreign origins (7.159065ms)
+✔ project knowledge is isolated, retrieved verbatim and preserved on backup/restore (6.68837ms)
+✔ deleting a task preserves documents and rejects running or cross-project tasks (7.179194ms)
+✖ DELETE accepts an empty streamed body as browsers and production Next can send (4.330665ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.295159
+
+✖ failing tests:
+
+test at tests/knowledge.test.mjs:103:1
+✖ DELETE accepts an empty streamed body as browsers and production Next can send (4.330665ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  400 !== 200
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/69d86f5391dc/ai-pm-assistant/tests/knowledge.test.mjs:107:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

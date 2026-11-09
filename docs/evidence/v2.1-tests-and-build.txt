@@ -1,0 +1,76 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.1.0 validate
+> npm run test && npm run build
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.1.0 test
+> node --test tests/*.test.mjs
+
+✔ upgraded API preserves projects and versions; rejects failures without demo substitution (75.220228ms)
+✔ projects isolate documents; manual edits append versions (12.183436ms)
+✔ backup validates before transaction and imports as copies (2.867439ms)
+✔ session tamper and expiry rejected; same origin required (1.055867ms)
+✔ backup rejects object values that would break document rendering (0.762755ms)
+✔ export and restore retain follow-up answers and document provenance (6.377134ms)
+✔ backup preserves workflow prompt version, draft and call traces (3.678635ms)
+✔ empty and malformed generated content cannot become deliverable (1.589745ms)
+✔ valid analysis preserves explicitly separated evidence (1.410069ms)
+✔ missing key fails in Chinese instead of demo fallback (0.93596ms)
+✔ each analysis sends current task to upstream; different tasks are not replaced with canned demo (5.142914ms)
+✔ upstream HTTP status and response-body timeouts have useful Chinese errors (1.043008ms)
+✔ password-free local API still rejects foreign origins (7.919138ms)
+✔ project knowledge is isolated, retrieved verbatim and preserved on backup/restore (9.093259ms)
+✔ deleting a task preserves documents and rejects running or cross-project tasks (7.973623ms)
+✔ failed or pending attempts never select the previous demo as a new result (0.868491ms)
+✔ completed run selects its own document; explicit historical selection remains available (0.161769ms)
+✔ switching tasks separates draft keys and document lists, including legacy documents (2.198362ms)
+✔ reloading a project uses active task records even when another task completed more recently (0.322927ms)
+✔ requirement_analysis uses distinct complete teacher System/User and review (5.516224ms)
+✔ solution_design uses distinct complete teacher System/User and review (4.107717ms)
+✔ prd_draft uses distinct complete teacher System/User and review (1.786033ms)
+✔ competitor_analysis uses distinct complete teacher System/User and review (1.174262ms)
+✔ auto recognition, insufficiency, high risk and unknown route independently (4.010284ms)
+✔ empty, failed, forged citations and bad structure never become deliverables (4.403905ms)
+✔ prompt migration preserves all four original professional System bodies exactly (0.648326ms)
+✔ explicitly prohibiting unsafe actions does not force high-risk response (1.323962ms)
+✔ invented source names without structured citations fail closed (3.566019ms)
+✔ cancelled request cannot call the next professional node (0.733362ms)
+✔ project, clarification and selected history reach review; draft survives review failure (1.463939ms)
+✔ local knowledge reaches professional and review nodes with actual excerpt IDs (0.987637ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.613674
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> lexie-ai-pm-assistant@2.1.0 build
+> next build --webpack
+
+▲ Next.js 16.4.4 (webpack)
+✓ Running next.config.mjs took 24ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.7s
+  Running TypeScript ...
+  Finished TypeScript in 611ms ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 651ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+└ ƒ /api/[...path]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

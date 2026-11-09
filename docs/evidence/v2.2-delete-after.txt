@@ -1,0 +1,12 @@
+✔ password-free local API still rejects foreign origins (7.058938ms)
+✔ project knowledge is isolated, retrieved verbatim and preserved on backup/restore (11.231606ms)
+✔ deleting a task preserves documents and rejects running or cross-project tasks (8.007277ms)
+✔ DELETE accepts an empty streamed body as browsers and production Next can send (4.773383ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.887159

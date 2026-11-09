@@ -1,0 +1,9 @@
+{
+  "homepage": 200,
+  "password_free_session": true,
+  "project_create": true,
+  "knowledge_add_read_delete": true,
+  "search_capability_honest": true,
+  "test_data": "isolated temporary DATA_DIR",
+  "real_model_call": false
+}
